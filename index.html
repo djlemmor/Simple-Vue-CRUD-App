@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instacode - Sample dev test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <header
+            class="bg-white sticky top-0 z-1 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-lg transition-all duration-300">
+            <div class="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
+                <a class="block text-teal-600" href="#">
+                    <span class="sr-only">Home</span>
+                    Instacode
+                </a>
+
+                <div class="flex flex-1 items-center justify-end">
+                    <div class="flex items-center gap-4">
+
+                        <!-- Search -->
+                        <label for="search">
+                            <div class="relative">
+                                <input v-model="search" type="text" id="search" placeholder="Search for topic"
+                                    class="mt-0.5 min-w-md rounded border-gray-300 pe-14 shadow-sm sm:text-sm py-2.5 px-5" />
+
+                                <span class="absolute inset-y-0 right-2 grid w-8 place-content-center">
+                                    <button type="button" aria-label="Submit"
+                                        class="rounded-full p-1.5 text-gray-700 transition-colors hover:bg-gray-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="size-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>
+                        </label>
+
+                        <div class="sm:flex sm:gap-4">
+                            <a @click="isAddTopicModalOpen = true"
+                                class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
+                                href="#">
+                                Add Topic
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- If no topics -->
+        <div v-if="pagedTopics.length === 0" class="w-full max-w-7xl px-4 md:px-5 lg:px-5 mx-auto">
+            <h1 class="text-center mt-10">No topics to show.</h1>
+        </div>
+
+        <section class="relative">
+            <div class="w-full max-w-7xl px-4 md:px-5 lg:px-5 mx-auto">
+                <div v-for="topic in pagedTopics" :key="topic.guid" class="py-18">
+                    <span class="flex items-center">
+                        <span class="h-px flex-1 bg-gray-300"></span>
+                        <h1 class="px-4 text-gray-900 text-4xl font-bold uppercase truncate">{{
+                            topic.name }}</h1>
+                        <span class="h-px flex-1 bg-gray-300"></span>
+                    </span>
+
+                    <div class="w-full inline-flex gap-2 justify-end">
+                        <button @click="isEditTopicModalOpen = true; startEditTopic(topic)"
+                            class="cursor-pointer rounded-sm border border-gray-200 p-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none disabled:pointer-events-auto disabled:opacity-50"
+                            title="Edit Topic">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+
+                        <button @click="deleteTopic(topic.guid)"
+                            class="cursor-pointer rounded-sm border border-gray-200 p-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none disabled:pointer-events-auto disabled:opacity-50"
+                            title="Delete Topic">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="w-full flex-col justify-start items-start gap-6 inline-flex">
+                        <h2 class="w-full text-gray-900 text-2xl font-bold font-manrope leading-normal">Comments</h2>
+                        <div class="w-full flex-col justify-start items-start gap-5 flex">
+                            <div class="w-full rounded-3xl justify-start items-start gap-3.5 inline-flex">
+                                <textarea v-model="getDraft(topic.guid).text" name="" rows="2"
+                                    class="w-full px-5 py-3 rounded-2xl border border-gray-300 shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] resize-none focus:outline-none placeholder-gray-400 text-gray-900 text-lg font-normal leading-7"
+                                    placeholder="Write your comment here...."></textarea>
+                            </div>
+                            <button @click="addComment(topic.guid)"
+                                class="cursor-pointer px-5 py-2.5 bg-indigo-600 hover:bg-indigo-800 transition-all duration-700 ease-in-out rounded-xl shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] justify-center items-center flex">
+                                <span class="px-2 py-px text-white text-base font-semibold leading-relaxed">Post your
+                                    comment</span>
+                            </button>
+                        </div>
+
+                        <div class="w-full flex-col justify-start items-start gap-8 flex">
+                            <template v-for="(comments, idx) in topic.comments" :key="idx">
+                                <div
+                                    class="w-full pb-6 border-b border-gray-300 justify-start items-start gap-2.5 inline-flex">
+                                    <img class="w-10 h-10 rounded-full object-cover"
+                                        src="https://avatar.iran.liara.run/public/35" alt="image" />
+                                    <div class="w-full flex-col justify-start items-start gap-3.5 inline-flex">
+                                        <div class="w-full justify-start items-start flex-col flex gap-1">
+                                            <div class="w-full justify-between items-start gap-1 inline-flex">
+                                                <h5 class="text-gray-900 text-sm font-semibold leading-snug"> {{
+                                                    getPersonName(comments.by) }} <{{ getPersonEmail(comments.by)}}>
+                                                </h5>
+                                                <span class="text-right text-gray-500 text-xs font-normal leading-5">{{
+                                                    formatTime(comments.date) }}
+                                                </span>
+                                            </div>
+                                            <div v-if="editingComment.topicGuid === topic.guid && editingComment.index === idx"
+                                                class="w-full rounded-3xl justify-start items-start gap-3.5 inline-flex">
+                                                <textarea v-model="editingComment.text" name="" rows="2"
+                                                    class="w-full px-5 py-3 rounded-2xl border border-gray-300 shadow-[0px_1px_2px_0px_rgba(16,_24,_40,_0.05)] resize-none focus:outline-none placeholder-gray-400 text-gray-900 text-lg font-normal leading-7"
+                                                    placeholder="Update your comment"></textarea>
+
+                                            </div>
+
+                                            <h5 v-else class="text-gray-800 text-sm font-normal leading-snug">
+                                                {{ comments.comment }}
+                                            </h5>
+                                        </div>
+                                        <div v-if="editingComment.topicGuid === topic.guid && editingComment.index === idx"
+                                            class="w-full justify-end items-start gap-6 inline-flex">
+                                            <button @click="saveEditingComment(topic.guid, idx)"
+                                                class="cursor-pointer block rounded-md bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700">
+                                                Save
+                                            </button>
+                                            <button @click="cancelEditComment()"
+                                                class="cursor-pointer block rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        <div v-else class="w-full justify-end items-start gap-6 inline-flex">
+                                            <button @click="startEditComment(topic.guid, idx, comments.comment)"
+                                                class="cursor-pointer block rounded-md bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-green-700">
+                                                Edit Comment
+                                            </button>
+                                            <button @click="deleteComment(topic.guid, idx)"
+                                                class="cursor-pointer block rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-700">
+                                                Delete Comment
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pagination controls -->
+        <div
+            class="fixed bottom-4 right-4 flex items-center gap-4 bg-white/90 backdrop-blur-md rounded-lg shadow-lg p-3 border border-gray-200">
+            <!-- Page Info -->
+            <div class="text-sm text-gray-600 font-medium">
+                Page {{ currentPage }} / {{ totalPages }}
+            </div>
+
+            <!-- Prev Button -->
+            <button
+                class="cursor-pointer px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+                :disabled="currentPage === 1" @click="currentPage--">
+                Prev
+            </button>
+
+            <!-- Next Button -->
+            <button
+                class="cursor-pointer px-4 py-2 rounded-md bg-teal-600 text-white hover:bg-teal-700 disabled:bg-teal-300 disabled:cursor-not-allowed transition"
+                :disabled="currentPage === totalPages" @click="currentPage++">
+                Next
+            </button>
+
+            <!-- Page Size Selector -->
+            <select v-model.number="pageSize" @change="currentPage = 1"
+                class="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option :value="5">5 / page</option>
+                <option :value="10">10 / page</option>
+                <option :value="20">20 / page</option>
+                <option :value="50">50 / page</option>
+            </select>
+        </div>
+
+        <!-- Add Topic Modal -->
+        <div v-if="isAddTopicModalOpen" class="fixed inset-0 z-50 grid place-content-center bg-black/50 p-4"
+            role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="w-full min-w-lg rounded-lg bg-white p-6 shadow-l g">
+                <div class="flex items-start justify-between">
+                    <h2 id="addTopic Modal" class="text-xl font-bold text-gray-900 sm:text-2xl">Add New Topic</h2>
+
+                    <button @click="isAddTopicModalOpen = false" type="button"
+                        class="cursor-pointer -me-4 -mt-4 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 focus:outline-none"
+                        aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    <label for="Topic">
+                        <input v-model="newTopic.name" type="text" id="addTopic"
+                            class="mt-0.5 w-full rounded border-gray-300 shadow-sm sm:text-sm p-4"
+                            placeholder="Enter New Topic" maxlength="50" required />
+
+                    </label>
+                </div>
+
+                <footer class="mt-6 flex justify-end gap-2">
+                    <button type="button" @click="isAddTopicModalOpen = false"
+                        class="cursor-pointer rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                        Cancel
+                    </button>
+
+                    <button @click="addTopic()" type="button"
+                        class="cursor-pointer rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+                        Add
+                    </button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Edit Topic Modal -->
+        <div v-if="isEditTopicModalOpen" class="fixed inset-0 z-50 grid place-content-center bg-black/50 p-4"
+            role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="w-full min-w-lg rounded-lg bg-white p-6 shadow-l g">
+                <div class="flex items-start justify-between">
+                    <h2 id="editTopicModal" class="text-xl font-bold text-gray-900 sm:text-2xl">Edit Topic</h2>
+
+                    <button @click="isEditTopicModalOpen = false; cancelEditTopic()" type="button"
+                        class="cursor-pointer -me-4 -mt-4 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 focus:outline-none"
+                        aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    <label for="Topic">
+                        <input v-model="editingTopic.name" type="text" id="editTopic"
+                            class="mt-0.5 w-full rounded border-gray-300 shadow-sm sm:text-sm p-4"
+                            placeholder="Enter New Topic" maxlength="50" required />
+                    </label>
+                </div>
+
+                <div>
+                    <div v-if="editError" class="text-red-600" style="margin-top:8px;">{{ editError }}</div>
+                </div>
+
+                <footer class="mt-6 flex justify-end gap-2">
+                    <button type="button" @click="isEditTopicModalOpen = false; cancelEditTopic()"
+                        class="cursor-pointer rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                        Cancel
+                    </button>
+
+                    <button @click="saveEditTopic()" type="button"
+                        class="cursor-pointer rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700">
+                        Save
+                    </button>
+                </footer>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const { createApp, computed, onMounted, ref, reactive } = Vue
+
+    createApp({
+        setup() {
+            const REMOTE_URL = 'https://atillc.blob.core.windows.net/data-collector/icode/test-data/topics.json';
+
+            const editingTopic = ref(null);
+            const editError = ref('');
+            const isAddTopicModalOpen = ref(false);
+            const isEditTopicModalOpen = ref(false);
+            const newTopic = reactive({ name: '', by: '', initialComment: '' });
+            const persons = ref([]);
+            const topics = ref([]);
+            const commentDrafts = reactive({});
+            const editingComment = reactive({ topicGuid: null, index: null, text: '' });
+            const search = ref('');
+            const currentPage = ref(1);
+            const pageSize = ref(20);
+
+            function addTopic() {
+                // Validate name length
+                if (!newTopic.name || newTopic.name.trim().length === 0) {
+                    alert('Topic name is required.');
+                    return;
+                }
+
+                if (newTopic.name.length > 50) {
+                    alert('Name must be at most 50 characters.');
+                    return;
+                }
+
+                // Build topic object
+                const t = {
+                    guid: generateGuid(),
+                    name: newTopic.name.trim(),
+                    by: newTopic.by ? newTopic.by.trim() : 'Anonymous',
+                    time: new Date().toISOString(),
+                    comments: []
+                };
+
+                // Insert at the front (newest first)
+                topics.value.unshift(t);
+
+                // Reset form fields
+                newTopic.name = '';
+                newTopic.by = '';
+
+                isAddTopicModalOpen.value = false;
+
+                currentPage.value = 1
+            }
+
+            function formatTime(iso) {
+                try {
+                    const d = new Date(iso);
+                    return d.toLocaleString();
+                } catch (e) {
+                    return iso;
+                }
+            }
+
+            function generateGuid() {
+                const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+
+                // Loop for 'length' times to create the string
+                for (let i = 0; i < 8; i++) {
+                    // Pick a random character from the chars string
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+
+                return result;
+            }
+
+            // Load data: remote fetch
+            async function loadData() {
+                // fetching remote JSON
+                try {
+                    const res = await fetch('https://atillc.blob.core.windows.net/data-collector/icode/test-data/topics.json');
+                    const data = await res.json();
+                    topics.value = data.topics;
+                    persons.value = data.persons;
+                } catch (e) {
+                    // Fetch failed (CORS, network, etc.)
+                    console.warn('Failed to fetch remote data:', e);
+                }
+            }
+
+            function getPersonEmail(guid) {
+                const person = persons.value.find(p => p.guid === guid);
+                return person ? person.email : guid;
+            }
+
+            function getPersonName(guid) {
+                const person = persons.value.find(p => p.guid === guid);
+                return person ? `${person.first} ${person.last}` : guid;
+            }
+
+            // Start editing a topic — clone it into editingTopic
+            function startEditTopic(topic) {
+                // create a shallow clone so we can cancel edits easily
+                editingTopic.value = { guid: topic.guid, name: topic.name.trim() };
+                editError.value = '';
+            }
+
+            // Cancel topic editing
+            function cancelEditTopic() {
+                editingTopic.value = null;
+                editError.value = '';
+            }
+
+            // Save edited topic back to the topics array
+            function saveEditTopic() {
+                if (!editingTopic.value.name || editingTopic.value.name.trim().length === 0) {
+                    editError.value = 'Topic is required.';
+                    return;
+                }
+
+                if (editingTopic.value.name.length > 50) {
+                    editError.value = 'Topic must be 50 characters or fewer.';
+                    return;
+                }
+
+                const idx = topics.value.findIndex(t => t.guid === editingTopic.value.guid);
+
+                if (idx >= 0) {
+                    topics.value[idx].name = editingTopic.value.name.trim();
+
+                    isEditTopicModalOpen.value = false;
+                } else {
+                    editError.value = 'Topic not found (maybe deleted).';
+                }
+            }
+
+            // Delete a topic by guid
+            function deleteTopic(guid) {
+                if (!confirm('Delete this topic?')) return;
+                const idx = topics.value.findIndex(t => t.guid === guid);
+                if (idx >= 0) {
+                    topics.value.splice(idx, 1);
+                }
+            }
+
+            // Function to get (or create) a draft for a topic
+            function getDraft(guid) {
+                if (!commentDrafts[guid]) {
+                    commentDrafts[guid] = { text: "", by: "", date: "" };
+                }
+
+                return commentDrafts[guid];
+            }
+
+            // Add a comment to a topic identified by guid
+            function addComment(guid) {
+                const t = topics.value.find(x => x.guid === guid);
+
+                if (!t) return alert('Topic not found.');
+
+                const draft = getDraft(guid);
+
+                if (!draft.text || draft.text.trim().length === 0) {
+                    return alert('Comment text is required.');
+                }
+
+                const c = {
+                    comment: draft.text.trim(),
+                    by: draft.by ? draft.by.trim() : 'Anonymous',
+                    date: new Date().toISOString()
+                };
+
+                t.comments.push(c);
+
+                commentDrafts[guid] = { text: "", by: "", date: "" }; // reset only that topic's draft
+            }
+
+            // Start editing a comment: prepare editingComment object
+            function startEditComment(topicGuid, index, comment) {
+                editingComment.topicGuid = topicGuid;
+                editingComment.index = index;
+                editingComment.text = comment.trim();
+            }
+
+            // Cancel editing comment
+            function cancelEditComment() {
+                editingComment.topicGuid = null;
+                editingComment.index = null;
+                editingComment.text = '';
+            }
+
+            // Save the currently editing comment back to the topic
+            function saveEditingComment(topicGuid, index) {
+                const t = topics.value.find(x => x.guid === topicGuid);
+
+                if (!t) return alert('Topic not found.');
+                if (!t.comments || !t.comments[index]) return alert('Comment not found.');
+
+                if (!editingComment.text || editingComment.text.trim().length === 0) {
+                    return alert('Comment text is required.');
+                }
+
+                t.comments[index].comment = editingComment.text.trim();
+                t.comments[index].date = new Date().toISOString(); // update date to indicate edit
+
+                cancelEditComment();
+            }
+
+            // Delete a comment
+            function deleteComment(topicGuid, index) {
+                if (!confirm('Delete this comment?')) return;
+
+                const t = topics.value.find(x => x.guid === topicGuid);
+
+                if (!t) return;
+
+                if (index >= 0 && index < t.comments.length) {
+                    t.comments.splice(index, 1);
+                }
+            }
+
+            // Search: check topic.name
+            const filteredTopics = computed(() => {
+                const q = search.value.trim().toLowerCase();
+                if (!q) return topics.value;
+
+                return topics.value.filter(t => {
+                    if ((t.name || '').toLowerCase().includes(q)) return true;
+
+                    if (Array.isArray(t.comments)) {
+                        for (const c of t.comments) {
+                            if ((c.text || '').toLowerCase().includes(q)) return true;
+                            if ((c.by || '').toLowerCase().includes(q)) return true;
+                        }
+                    }
+
+                    return false;
+                });
+            });
+
+            // Total pages computed from filtered length and pageSize
+            const totalPages = computed(() => {
+                const total = Math.max(1, Math.ceil(filteredTopics.value.length / pageSize.value));
+                // keep currentPage in bounds
+                if (currentPage.value > total) currentPage.value = total;
+                if (currentPage.value < 1) currentPage.value = 1;
+                return total;
+            });
+
+            // The topics to show on the current page
+            const pagedTopics = computed(() => {
+                const start = (currentPage.value - 1) * pageSize.value;
+                return filteredTopics.value.slice(start, start + pageSize.value);
+            });
+
+            // On mount, load data
+            onMounted(async () => {
+                await loadData();
+            });
+
+            return {
+                isAddTopicModalOpen,
+                isEditTopicModalOpen,
+                newTopic,
+                persons,
+                topics,
+                commentDrafts,
+                editingComment,
+                editingTopic,
+                editError,
+                search,
+                currentPage,
+                pageSize,
+                filteredTopics,
+                pagedTopics,
+                totalPages,
+                addTopic,
+                formatTime,
+                getDraft,
+                generateGuid,
+                getPersonEmail,
+                getPersonName,
+                startEditTopic,
+                cancelEditTopic,
+                saveEditTopic,
+                deleteTopic,
+                addComment,
+                startEditComment,
+                cancelEditComment,
+                saveEditingComment,
+                deleteComment,
+            }
+        }
+    }).mount('#app')
+</script>
+
+</html>
